@@ -1,0 +1,10 @@
+# git 설치
+brew install gnupg
+# 1.	GPG 키를 생성합니다:
+gpg --full-generate-key
+# 2.	생성된 GPG 키 ID를 확인합니다:
+gpg --list-secret-keys --keyid-format LONG
+#	3.	Git에 GPG 서명 키를 설정합니다:
+git config --global user.signingkey <GPG 키 ID>
+#	4.	이제 GPG 서명 커밋을 할 수 있습니다:
+git commit -S
