@@ -9,3 +9,4 @@ git config --global user.signingkey <GPG 키 ID>
 #	4.	이제 GPG 서명 커밋을 할 수 있습니다:
 git commit -S
 # 5. gpg --armor --export <GPG 키 ID>
+s
