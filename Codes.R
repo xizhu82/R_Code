@@ -27,7 +27,6 @@ Starter_data <- Starter_data %>%
   mutate(across(.cols = c("ER_cumsum","luck_cumsum","BBK_cumsum"),
                 .fns = ~ ./IP_cumsum,
                 .names = "{.col}_IP"))  # 생성될 새 열 이름 형식 지정
-
 Starter_data <- Starter_data %>% group_by(Season,Pitching) %>%
   mutate(across(.cols = c(ends_with("_IP"),WHIP_cumsum,WHIP_movavg,FIP_cumsum,FIP_movavg,IPHR_cumsum,IPHR_movavg), 
                 .fns = ~ lag(., 1)))  # 지연(lag) 처리가 필요한 모든 열에 대해 지연 처리 적용
