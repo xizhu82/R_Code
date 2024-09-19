@@ -55,6 +55,11 @@ Batter_data_fin <- Batter_data_fin %>%
   separate(Batting, into = c("first_name", "last_name", "position"), sep = " ", extra = "drop") %>%
   unite("player_name", first_name, last_name, sep = " ")
 
+# 데이터프레임을 Season과 Pitching 기준으로 그룹화하고, 가장 최근 날짜의 팀 정보를 유지
+Pitcher_data_Home <- Pitcher_data_Home %>%
+  group_by(Season, Pitching) %>%
+  filter(Date == max(Date)) %>%
+  ungroup()
 
 
 
