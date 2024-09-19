@@ -44,5 +44,20 @@ desired_order <- c("Date", "Team","Pitching","SR") # 조정하고 싶은 컬럼�
 remaining_cols <- setdiff(names(Pitcher_data_fin), desired_order) # 나머지 컬럼들 유지
 Pitcher_data_fin <- Pitcher_data_fin[, c(desired_order, remaining_cols)] # 순서 조정
 
+# 타자 이름 포지션  "Shohei Ohtani DH-P" 공백 기준으로 나누기 #
+# 공백 기준으로 나누고 마지막 텍스트 삭제 #
+Batter_data_fin <- Batter_data_fin %>%
+  rowwise() %>%
+  mutate(Batting = paste(unlist(strsplit(Batting, " "))[1:2], collapse = " ")) %>%
+  ungroup()
+# 공백 기준으로 나누고, 마지막 컬럼 제거 separate 사용 #
+Batter_data_fin <- Batter_data_fin %>%
+  separate(Batting, into = c("first_name", "last_name", "position"), sep = " ", extra = "drop") %>%
+  unite("player_name", first_name, last_name, sep = " ")
+
+
+
+
+
 
 
