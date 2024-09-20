@@ -65,6 +65,7 @@ Pitcher_data_Home <- Pitcher_data_Home %>%
 
 # 필요한 라이브러리 로드
 library(dplyr)
+library(lubridate)
 
 # 데이터 불러오기
 sheet1 <- read_excel("path_to_file/aaa.xlsx", sheet = "Sheet1")
@@ -72,11 +73,10 @@ sheet1 <- read_excel("path_to_file/aaa.xlsx", sheet = "Sheet1")
 # 데이터 변환
 sheet2 <- sheet1 %>%
   group_by(name, location) %>%
-  mutate(
-    start = ifelse(row_number() == 1, start, lag(end) + 1),
-    end = ifelse(row_number() == n(), end, lead(start) - 1)
-  ) %>%
-  ungroup()
+  arrange(start) %>% 
+  mutate(next_start = lead(start, default = max(end)),
+         end = ifelse(is.na(lead(start)), end, lead(start) - days(1))) %>%
+  select(name, location, start, end)
 
 # 변환된 데이터 저장
 write.xlsx(sheet2, "path_to_save/sheet2_transformed.xlsx")
