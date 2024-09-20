@@ -66,39 +66,17 @@ Pitcher_data_Home <- Pitcher_data_Home %>%
 # 필요한 라이브러리 로드
 library(dplyr)
 
-# Sheet1 데이터 로드
-sheet1 <- data.frame(
-  name = c("song", "song"),
-  location = c("seoul", "busan"),
-  start = as.Date(c("2020-01-01", "2020-06-01")),
-  end = as.Date(c("2020-12-31", "2020-08-31"))
-)
+# 데이터 불러오기
+sheet1 <- read_excel("path_to_file/aaa.xlsx", sheet = "Sheet1")
 
-# busan의 기간을 기준으로 seoul의 기간을 나누기 위한 코드
-seoul <- sheet1 %>% filter(location == "seoul")
-busan <- sheet1 %>% filter(location == "busan")
-
-# 서울의 기간을 busan의 기간에 맞춰 나누기
-seoul_split <- seoul %>%
+# 데이터 변환
+sheet2 <- sheet1 %>%
+  group_by(name, location) %>%
   mutate(
-    start1 = start,
-    end1 = busan$start - 1,  # busan이 시작하기 전 날짜까지
-    start2 = busan$end + 1,  # busan이 끝난 후 날짜부터
-    end2 = end
-  )
+    start = ifelse(row_number() == 1, start, lag(end) + 1),
+    end = ifelse(row_number() == n(), end, lead(start) - 1)
+  ) %>%
+  ungroup()
 
-# 데이터 정리 및 필요 없는 열 제거
-seoul_split <- seoul_split %>%
-  select(name, location, start1, end1, start2, end2) %>%
-  gather(key, value, start1:end2) %>%
-  separate(key, into = c("period", "type"), sep = -1) %>%
-  spread(type, value) %>%
-  filter(!is.na(start) & !is.na(end))
-
-# busan 데이터와 병합
-sheet2 <- bind_rows(seoul_split, busan)
-
-# 결과 출력
-print(sheet2)
-
-
+# 변환된 데이터 저장
+write.xlsx(sheet2, "path_to_save/sheet2_transformed.xlsx")
