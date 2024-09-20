@@ -73,9 +73,9 @@ sheet1 <- read_excel("path_to_file/aaa.xlsx", sheet = "Sheet1")
 # 데이터 변환
 sheet2 <- sheet1 %>%
   group_by(name, location) %>%
-  arrange(start) %>% 
-  mutate(next_start = lead(start, default = max(end)),
-         end = ifelse(is.na(lead(start)), end, lead(start) - days(1))) %>%
+  arrange(start) %>%
+  mutate(end = ifelse(lead(start, default = NA) > end, end, lead(start, default = NA) - days(1))) %>%
+  ungroup() %>%
   select(name, location, start, end)
 
 # 변환된 데이터 저장
