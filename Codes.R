@@ -60,23 +60,3 @@ Pitcher_data_Home <- Pitcher_data_Home %>%
   group_by(Season, Pitching) %>%
   filter(Date == max(Date)) %>%
   ungroup()
-
-
-
-# 필요한 라이브러리 로드
-library(dplyr)
-library(lubridate)
-
-# 데이터 불러오기
-sheet1 <- read_excel("path_to_file/aaa.xlsx", sheet = "Sheet1")
-
-# 데이터 변환
-sheet2 <- sheet1 %>%
-  group_by(name, location) %>%
-  arrange(start) %>%
-  mutate(end = ifelse(lead(start, default = NA) > end, end, lead(start, default = NA) - days(1))) %>%
-  ungroup() %>%
-  select(name, location, start, end)
-
-# 변환된 데이터 저장
-write.xlsx(sheet2, "path_to_save/sheet2_transformed.xlsx")
