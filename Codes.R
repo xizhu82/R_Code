@@ -13,8 +13,7 @@ Pitcher_data_fin$Date <- as.Date(str_extract(Pitcher_data_fin$Date, "^[^ ]+")) #
 ##### 데이터 전처리 #####
 
 # 이동평균 #
-Starter_data <- Starter_data %>%
-  group_by(`Season`,Pitching) %>%
+Starter_data <- Starter_data %>% group_by(`Season`,Pitching) %>%
   mutate(across(.cols = c(IP,ER,luck,WHIP,FIP,BBK,IPHR),
                 .fns = list(
                   cumsum = ~ slide_dbl(., sum, .before = 12, .complete = FALSE) ,
@@ -22,11 +21,11 @@ Starter_data <- Starter_data %>%
                 )))
 
 # 비율 계산을 위해 mutate와 across 사용 #
-Starter_data <- Starter_data %>%
-  group_by(Season,Pitching) %>%
+Starter_data <- Starter_data %>% group_by(Season,Pitching) %>%
   mutate(across(.cols = c("ER_cumsum","luck_cumsum","BBK_cumsum"),
                 .fns = ~ ./IP_cumsum,
                 .names = "{.col}_IP"))  # 생성될 새 열 이름 형식 지정
+
 Starter_data <- Starter_data %>% group_by(Season,Pitching) %>%
   mutate(across(.cols = c(ends_with("_IP"),WHIP_cumsum,WHIP_movavg,FIP_cumsum,FIP_movavg,IPHR_cumsum,IPHR_movavg), 
                 .fns = ~ lag(., 1)))  # 지연(lag) 처리가 필요한 모든 열에 대해 지연 처리 적용
@@ -60,3 +59,10 @@ Pitcher_data_Home <- Pitcher_data_Home %>%
   group_by(Season, Pitching) %>%
   filter(Date == max(Date)) %>%
   ungroup()
+
+# 중복 코드 확인 및 삭제
+duplicated_rows <- MLB_Schedule[duplicated(MLB_Schedule[,c("Date","Team","Opp","TS","OS")]),]
+MLB_Schedule <- MLB_Schedule[!duplicated(MLB_Schedule[,c("Date","Team","Opp","TS","OS")]),]
+
+
+
