@@ -66,6 +66,9 @@ MLB_Schedule <- MLB_Schedule[!duplicated(MLB_Schedule[,c("Date","Team","Opp","TS
 
 
 
+# 필요한 패키지 로드
+library(dplyr)
+
 # 샘플 데이터 생성
 df <- data.frame(
   사람 = c('홍길동', '홍길동', '이순신', '이순신'),
@@ -74,41 +77,52 @@ df <- data.frame(
   끝날짜 = as.Date(c('2024-01-05', '2024-01-06', '2024-01-10', '2024-01-15'))
 )
 
-# 같은 사람이 다른 장소로 이사 가는 기간이 겹치는지 확인하고, 겹치는 구간을 추가하는 함수
-add_overlapping_rows_person_location <- function(df) {
-  new_rows <- data.frame()  # 추가할 새로운 행들을 저장할 데이터 프레임
+# 기간이 겹치는지 확인하고, 새로운 행을 추가하는 함수
+add_overlapping_rows_grouped <- function(df) {
   
-  for (i in 1:(nrow(df)-1)) {
-    for (j in (i+1):nrow(df)) {
-      # 같은 사람인지 확인
-      if (df$사람[i] == df$사람[j] && df$장소[i] != df$장소[j]) {
-        시작1 <- df$시작날짜[i]
-        끝1 <- df$끝날짜[i]
-        시작2 <- df$시작날짜[j]
-        끝2 <- df$끝날짜[j]
-        
-        # 기간이 겹치는지 확인
-        if (시작1 <= 끝2 && 시작2 <= 끝1) {
-          # 겹치는 구간의 시작과 끝 날짜 계산
-          겹침_시작 <- max(시작1, 시작2)
-          겹침_끝 <- min(끝1, 끝2)
-          
-          # 앞, 중복, 뒤로 새로운 행 추가
-          앞_시작 <- min(시작1, 시작2) - 1
-          뒷_끝 <- max(끝1, 끝2) + 1
-          
-          # 새로운 행 추가 (사람과 장소 정보 유지)
-          new_rows <- rbind(new_rows, data.frame(사람 = df$사람[i], 장소 = df$장소[i], 시작날짜 = 앞_시작, 끝날짜 = 겹침_시작))
-          new_rows <- rbind(new_rows, data.frame(사람 = df$사람[i], 장소 = df$장소[i], 시작날짜 = 겹침_시작, 끝날짜 = 겹침_끝))
-          new_rows <- rbind(new_rows, data.frame(사람 = df$사람[i], 장소 = df$장소[j], 시작날짜 = 겹침_끝, 끝날짜 = 뒷_끝))
+  # 같은 사람을 그룹으로 묶고, 장소가 다른 경우만 확인
+  new_df <- df %>%
+    group_by(사람) %>%
+    do({
+      person_data <- .
+      new_rows <- data.frame()  # 추가할 행들 저장
+      
+      for (i in 1:(nrow(person_data)-1)) {
+        for (j in (i+1):nrow(person_data)) {
+          # 같은 사람이지만 다른 장소일 때만 비교
+          if (person_data$장소[i] != person_data$장소[j]) {
+            시작1 <- person_data$시작날짜[i]
+            끝1 <- person_data$끝날짜[i]
+            시작2 <- person_data$시작날짜[j]
+            끝2 <- person_data$끝날짜[j]
+            
+            # 기간이 겹치는지 확인
+            if (시작1 <= 끝2 && 시작2 <= 끝1) {
+              # 겹치는 구간의 시작과 끝 날짜 계산
+              겹침_시작 <- max(시작1, 시작2)
+              겹침_끝 <- min(끝1, 끝2)
+              
+              # 앞, 중복, 뒤로 새로운 행 추가
+              앞_시작 <- min(시작1, 시작2) - 1
+              뒷_끝 <- max(끝1, 끝2) + 1
+              
+              # 새로운 행 추가
+              new_rows <- rbind(new_rows, data.frame(사람 = person_data$사람[i], 장소 = person_data$장소[i], 시작날짜 = 앞_시작, 끝날짜 = 겹침_시작))
+              new_rows <- rbind(new_rows, data.frame(사람 = person_data$사람[i], 장소 = person_data$장소[i], 시작날짜 = 겹침_시작, 끝날짜 = 겹침_끝))
+              new_rows <- rbind(new_rows, data.frame(사람 = person_data$사람[i], 장소 = person_data$장소[j], 시작날짜 = 겹침_끝, 끝날짜 = 뒷_끝))
+            }
+          }
         }
       }
-    }
-  }
+      
+      # 원래 데이터와 새로 생성한 행 합치기
+      bind_rows(person_data, new_rows)
+    }) %>%
+    ungroup()  # 그룹 해제
   
-  return(rbind(df, new_rows))  # 원래 데이터와 새로 추가된 행 합치기
+  return(new_df)
 }
 
 # 함수 실행
-new_df <- add_overlapping_rows_person_location(df)
+new_df <- add_overlapping_rows_grouped(df)
 print(new_df)
